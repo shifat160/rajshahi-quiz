@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Staff · Rajshahi Quiz</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",system-ui,sans-serif;}
+  body{background:#0a3c2c;color:#f4fff9;padding:16px;max-width:760px;margin:0 auto;}
+  h1{font-size:20px;margin-bottom:4px;}
+  .sub{opacity:.7;font-size:13px;margin-bottom:16px;}
+  .row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  input{flex:1;min-width:160px;padding:11px 12px;border-radius:10px;border:1px solid #2fbf71;
+    background:rgba(0,0,0,.3);color:#f4fff9;font-size:15px;}
+  button{padding:11px 18px;border:none;border-radius:10px;background:#F2A900;color:#3a2400;
+    font-weight:bold;cursor:pointer;font-size:15px;}
+  button.ghost{background:transparent;color:#f4fff9;border:1px solid rgba(255,255,255,.4);}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px;}
+  .inv{background:rgba(255,255,255,.07);border-radius:12px;padding:12px;}
+  .inv .it{font-weight:bold;font-size:15px;margin-bottom:6px;}
+  .inv .n{font-size:13px;opacity:.85;}
+  .inv .rem{color:#F2A900;font-weight:bold;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.1);}
+  th{opacity:.6;font-size:11px;text-transform:uppercase;letter-spacing:1px;}
+  .code{font-family:"Courier New",monospace;color:#ffd24a;font-weight:bold;}
+  .claimed{opacity:.5;}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;}
+  .pill.yes{background:rgba(47,191,113,.25);color:#7be3a8;}
+  .pill.no{background:rgba(255,210,74,.2);color:#ffd24a;}
+  .msg{min-height:18px;font-size:13px;margin-bottom:10px;}
+  .err{color:#ff8a8a;}
+</style>
+</head>
+<body>
+  <h1>🎁 Swag Redemption — Staff</h1>
+  <div class="sub">Enter the admin token, then redeem a winner's code or watch inventory.</div>
+
+  <div class="row">
+    <input id="token" type="password" placeholder="Admin token" autocomplete="off">
+    <button id="loadBtn">Load</button>
+  </div>
+
+  <div class="row">
+    <input id="codeInput" placeholder="Claim code e.g. RAJ-CAP-1A2B" autocomplete="off">
+    <button id="claimBtn">Mark claimed</button>
+  </div>
+  <div class="msg" id="msg"></div>
+
+  <div class="cards" id="inventory"></div>
+  <table id="tbl"><thead><tr><th>When</th><th>Name</th><th>Score</th><th>Swag</th><th>Code</th><th>Status</th></tr></thead>
+    <tbody id="rows"><tr><td colspan="6" style="opacity:.6">Load to view winners…</td></tr></tbody></table>
+
+<script>
+const $=id=>document.getElementById(id);
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function tok(){return encodeURIComponent($('token').value.trim());}
+
+async function load(){
+  const msg=$('msg');msg.textContent='';msg.className='msg';
+  if(!$('token').value.trim()){msg.textContent='Enter the admin token first.';msg.className='msg err';return;}
+  try{
+    const r=await fetch('/api/staff?token='+tok());
+    if(r.status===403){msg.textContent='Wrong token.';msg.className='msg err';return;}
+    const d=await r.json();
+    $('inventory').innerHTML=Object.keys(d.inventory||{}).map(k=>{
+      const v=d.inventory[k];
+      return '<div class="inv"><div class="it">'+esc(k)+'</div>'+
+        '<div class="n">Remaining: <span class="rem">'+v.remaining+'</span> / '+v.total+'</div>'+
+        '<div class="n">Issued '+v.issued+' · Claimed '+v.claimed+'</div></div>';
+    }).join('')||'<div class="inv">No inventory configured</div>';
+    const rows=d.winners||[];
+    $('rows').innerHTML=rows.length?rows.map(w=>{
+      const dt=new Date(w.ts).toLocaleString();
+      return '<tr class="'+(w.claimed?'claimed':'')+'"><td>'+esc(dt)+'</td><td>'+esc(w.name)+'</td>'+
+        '<td>'+w.score+'/'+w.total+'</td><td>'+esc(w.item)+'</td>'+
+        '<td class="code">'+esc(w.code)+'</td>'+
+        '<td>'+(w.claimed?'<span class="pill yes">claimed</span>':'<span class="pill no">unclaimed</span>')+'</td></tr>';
+    }).join(''):'<tr><td colspan="6" style="opacity:.6">No winners yet</td></tr>';
+  }catch(e){msg.textContent='Network error.';msg.className='msg err';}
+}
+async function claim(){
+  const msg=$('msg');msg.textContent='';msg.className='msg';
+  const code=$('codeInput').value.trim();
+  if(!code){msg.textContent='Enter a claim code.';msg.className='msg err';return;}
+  try{
+    const r=await fetch('/api/claim?token='+tok(),{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code})});
+    const d=await r.json();
+    if(r.status===403){msg.textContent='Wrong token.';msg.className='msg err';return;}
+    if(r.status===404){msg.textContent='Code not found.';msg.className='msg err';return;}
+    if(d.already){msg.textContent='⚠️ Already claimed by '+esc(d.name)+' ('+esc(d.item)+').';}
+    else{msg.textContent='✅ Claimed: '+esc(d.item)+' for '+esc(d.name)+'.';}
+    $('codeInput').value='';load();
+  }catch(e){msg.textContent='Network error.';msg.className='msg err';}
+}
+$('loadBtn').addEventListener('click',load);
+$('claimBtn').addEventListener('click',claim);
+$('codeInput').addEventListener('keydown',e=>{if(e.key==='Enter')claim();});
+</script>
+</body>
+</html>

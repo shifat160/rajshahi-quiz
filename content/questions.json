@@ -1,0 +1,156 @@
+{
+  "_comment": "Starter Rajshahi quiz pool. The correct answer is always listed FIRST (answerIndex 0) for easy review; the server shuffles option order per session and never sends answerIndex to the browser. 'image' is the asset the app loads (empty = no image); 'imageHint' is a suggested photo for the content team to add into public/img/.",
+  "serveCount": 10,
+  "questions": [
+    {
+      "id": "raj-01",
+      "category": "Mango",
+      "question": "Rajshahi is most famous for producing which fruit?",
+      "image": "",
+      "imageHint": "img/mango.jpg",
+      "options": ["Mango", "Lychee", "Jackfruit", "Guava"],
+      "answerIndex": 0,
+      "explanation": "Rajshahi and neighbouring Chapainawabganj are the heart of Bangladesh's mango country."
+    },
+    {
+      "id": "raj-02",
+      "category": "Mango",
+      "question": "Which of these is a famous mango variety grown in the Rajshahi region?",
+      "image": "",
+      "imageHint": "",
+      "options": ["Fazli", "Alphonso", "Kesar", "Dasheri"],
+      "answerIndex": 0,
+      "explanation": "Fazli, Langra, Gopalbhog and Khirsapat are local favourites; the other three are Indian varieties."
+    },
+    {
+      "id": "raj-03",
+      "category": "Mango",
+      "question": "In which season are Rajshahi's famous mangoes harvested?",
+      "image": "",
+      "imageHint": "",
+      "options": ["Summer (May to July)", "Winter", "Early spring", "Autumn"],
+      "answerIndex": 0,
+      "explanation": "Mango season peaks across the hot summer months."
+    },
+    {
+      "id": "raj-04",
+      "category": "Silk",
+      "question": "Rajshahi is popularly nicknamed the ____ City. Which word fills the blank?",
+      "image": "",
+      "imageHint": "img/silk.jpg",
+      "options": ["Silk", "Tea", "Port", "Steel"],
+      "answerIndex": 0,
+      "explanation": "Its silk industry earns it the name Resham Nagari, the Silk City."
+    },
+    {
+      "id": "raj-05",
+      "category": "Silk",
+      "question": "Rajshahi silk is traditionally woven from threads produced by which creature?",
+      "image": "",
+      "imageHint": "",
+      "options": ["Silkworm", "Spider", "Sheep", "Cotton plant"],
+      "answerIndex": 0,
+      "explanation": "Sericulture, the raising of silkworms, is central to Rajshahi's silk trade."
+    },
+    {
+      "id": "raj-06",
+      "category": "Geography",
+      "question": "On the bank of which river does Rajshahi city sit?",
+      "image": "",
+      "imageHint": "img/padma-river.jpg",
+      "options": ["Padma", "Jamuna", "Meghna", "Karnaphuli"],
+      "answerIndex": 0,
+      "explanation": "The Padma riverfront is one of the city's signature views."
+    },
+    {
+      "id": "raj-07",
+      "category": "Geography",
+      "question": "The popular riverside embankment and hangout spot in Rajshahi is known as the...",
+      "image": "",
+      "imageHint": "",
+      "options": ["T-Bandh (Padma Garden)", "Cox's Bazar", "Foy's Lake", "Inani Beach"],
+      "answerIndex": 0,
+      "explanation": "The T-Bandh on the Padma is a favourite evening spot for locals."
+    },
+    {
+      "id": "raj-08",
+      "category": "Geography",
+      "question": "The distinctive reddish, older-alluvial soil region around Rajshahi is called the...",
+      "image": "",
+      "imageHint": "",
+      "options": ["Barind Tract (Barendra)", "Sundarbans", "Haor Basin", "Hill Tracts"],
+      "answerIndex": 0,
+      "explanation": "The Barind, or Barendra, tract gives the area its unique landscape."
+    },
+    {
+      "id": "raj-09",
+      "category": "Heritage",
+      "question": "Rajshahi is home to the oldest museum in Bangladesh. Which is it?",
+      "image": "",
+      "imageHint": "img/varendra-museum.jpg",
+      "options": ["Varendra Research Museum", "Ahsan Manzil", "Bangladesh National Museum", "Tajhat Palace"],
+      "answerIndex": 0,
+      "explanation": "It was founded to preserve the heritage of the Varendra region."
+    },
+    {
+      "id": "raj-10",
+      "category": "Heritage",
+      "question": "The Varendra Research Museum is best known for preserving which kind of collection?",
+      "image": "",
+      "imageHint": "",
+      "options": ["Ancient sculptures and archaeological artifacts", "Modern abstract paintings", "Live wildlife", "Space and astronomy exhibits"],
+      "answerIndex": 0,
+      "explanation": "Its galleries are filled with regional sculptures, inscriptions and antiquities."
+    },
+    {
+      "id": "raj-11",
+      "category": "Heritage",
+      "question": "The historic Bagha Mosque in Rajshahi is especially famous for its...",
+      "image": "",
+      "imageHint": "img/bagha-mosque.jpg",
+      "options": ["Terracotta decoration", "Golden dome", "Marble floors", "Glass mosaics"],
+      "answerIndex": 0,
+      "explanation": "Its intricate terracotta plaques are renowned across the country."
+    },
+    {
+      "id": "raj-12",
+      "category": "Geography",
+      "question": "Rajshahi is located in which part of Bangladesh?",
+      "image": "",
+      "imageHint": "",
+      "options": ["North-western", "South-eastern", "Central", "Coastal south"],
+      "answerIndex": 0,
+      "explanation": "Rajshahi sits in the north-west of the country, along the Padma."
+    },
+    {
+      "id": "raj-13",
+      "category": "Heritage",
+      "question": "The Puthia complex near Rajshahi holds the largest cluster of what in Bangladesh?",
+      "image": "",
+      "imageHint": "img/puthia-temple.jpg",
+      "options": ["Historic Hindu temples", "Mosques", "Tea gardens", "Railway stations"],
+      "answerIndex": 0,
+      "explanation": "Puthia's temple complex, including the grand Shiva Temple, is unique in the country."
+    },
+    {
+      "id": "raj-14",
+      "category": "Institutions",
+      "question": "Rajshahi University, established in 1953, is the ____ oldest university in Bangladesh.",
+      "image": "",
+      "imageHint": "",
+      "options": ["Second", "First", "Fifth", "Tenth"],
+      "answerIndex": 0,
+      "explanation": "Only the University of Dhaka, founded in 1921, is older."
+    },
+    {
+      "id": "raj-15",
+      "category": "Facts",
+      "question": "Rajshahi is one of how many administrative divisions of Bangladesh?",
+      "image": "",
+      "imageHint": "",
+      "options": ["8", "6", "5", "12"],
+      "answerIndex": 0,
+      "explanation": "Bangladesh is split into 8 divisions, and Rajshahi is one of them."
+    }
+  ]
+}

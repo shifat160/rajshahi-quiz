@@ -1,0 +1,15 @@
+{
+  "quizName": "Rajshahi Quiz",
+  "tagline": "Silk City Challenge",
+  "perQuestionSeconds": 20,
+  "showRunningScore": true,
+  "swag": {
+    "minToWin": 5,
+    "tiers": [
+      { "min": 9, "item": "T-shirt", "short": "TSHIRT", "emoji": "👕" },
+      { "min": 7, "item": "Cap", "short": "CAP", "emoji": "🧢" },
+      { "min": 5, "item": "Pen", "short": "PEN", "emoji": "🖊️" }
+    ],
+    "inventory": { "T-shirt": 15, "Cap": 30, "Pen": 50 }
+  }
+}

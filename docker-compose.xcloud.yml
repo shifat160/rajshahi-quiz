@@ -1,0 +1,18 @@
+services:
+  rajshahi-quiz:
+    image: ghcr.io/shifat160/rajshahi-quiz:latest
+    container_name: rajshahi-quiz
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATA_DIR=/app/data
+      # Secret for /api/reset, /api/export and the staff page (/staff.html)
+      - ADMIN_TOKEN=rajshahi-quiz-2026
+    volumes:
+      # Named volume — Docker-managed, survives restarts and redeploys
+      - quiz_data:/app/data
+
+volumes:
+  quiz_data:

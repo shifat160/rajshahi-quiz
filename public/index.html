@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Rajshahi Quiz — WordCamp Rajshahi</title>
+<style>
+  :root{
+    --mango:#F2A900; --mango-deep:#d98b00;
+    --silk:#0E7C5A; --silk-deep:#0a5c43;
+    --ink:#06241a; --paper:#f4fff9;
+    --good:#2fbf71; --bad:#ff5a6a; --gold:#ffd24a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+    color:var(--paper);overflow:hidden;user-select:none;-webkit-user-select:none;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #1aa377 0%, var(--silk) 42%, var(--silk-deep) 100%);
+  }
+  #app{position:fixed;inset:0;display:flex;flex-direction:column;}
+
+  /* top bar */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;gap:10px;}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:bold;letter-spacing:.3px;}
+  .brand .logo{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:17px;
+    background:linear-gradient(135deg,var(--mango),var(--mango-deep));color:#3a2400;}
+  .brand small{display:block;font-weight:normal;opacity:.7;font-size:9.5px;letter-spacing:1.6px;}
+  .scorechip{font-size:12px;letter-spacing:.5px;opacity:.9;text-align:right;}
+  .scorechip b{font-size:20px;display:block;color:var(--mango);}
+
+  /* progress + timer */
+  .meta{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+  .dots{display:flex;gap:6px;flex-wrap:wrap;}
+  .dot{width:13px;height:13px;border-radius:50%;border:2px solid rgba(244,255,249,.4);transition:.2s;}
+  .dot.right{background:var(--good);border-color:var(--good);}
+  .dot.wrong{background:var(--bad);border-color:var(--bad);}
+  .dot.cur{box-shadow:0 0 0 3px rgba(255,210,74,.5);border-color:var(--gold);}
+  .timer{height:8px;border-radius:6px;background:rgba(0,0,0,.3);overflow:hidden;}
+  .timer .fill{height:100%;width:100%;background:linear-gradient(90deg,var(--good),var(--mango));
+    transition:width .25s linear;}
+  .timer.low .fill{background:linear-gradient(90deg,#ff8a3d,var(--bad));}
+
+  /* question card */
+  .stage{flex:1;overflow:auto;padding:14px 16px 0;display:flex;flex-direction:column;}
+  .card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+    border-radius:18px;padding:16px;backdrop-filter:blur(4px);}
+  .qcat{display:inline-block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;
+    background:rgba(242,169,0,.18);color:var(--mango);padding:4px 10px;border-radius:999px;margin-bottom:10px;}
+  .qimg{width:100%;max-height:30vh;object-fit:cover;border-radius:12px;margin-bottom:12px;display:none;}
+  .qtext{font-size:19px;line-height:1.35;font-weight:bold;margin-bottom:14px;}
+  .opts{display:flex;flex-direction:column;gap:10px;}
+  .opt{display:flex;align-items:center;gap:11px;text-align:left;width:100%;cursor:pointer;
+    font-family:inherit;font-size:16px;color:var(--paper);
+    background:rgba(0,0,0,.22);border:2px solid rgba(255,255,255,.16);border-radius:13px;padding:14px 14px;
+    transition:transform .08s,border-color .15s,background .15s;}
+  .opt .key{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:none;
+    background:rgba(255,255,255,.12);font-weight:bold;font-size:13px;}
+  .opt:active{transform:scale(.99);}
+  .opt.correct{border-color:var(--good);background:rgba(47,191,113,.22);}
+  .opt.wrong{border-color:var(--bad);background:rgba(255,90,106,.2);}
+  .opt.correct .key{background:var(--good);color:#053;}
+  .opt.wrong .key{background:var(--bad);color:#fff;}
+  .opt.dim{opacity:.5;}
+  body.answered .opt{cursor:default;}
+
+  .explain{margin-top:12px;font-size:13.5px;line-height:1.4;opacity:0;max-height:0;overflow:hidden;
+    border-left:3px solid var(--mango);padding-left:11px;transition:opacity .25s;}
+  .explain.show{opacity:.92;max-height:200px;margin-bottom:2px;}
+  .explain b{color:var(--mango);}
+
+  /* bottom action */
+  .hud{padding:12px 16px calc(14px + env(safe-area-inset-bottom));}
+  .hint{text-align:center;font-size:12.5px;opacity:.75;height:16px;margin-bottom:8px;}
+  .btn{border:none;cursor:pointer;font-family:inherit;font-weight:bold;width:100%;
+    padding:15px 20px;border-radius:14px;font-size:16px;letter-spacing:.4px;
+    background:linear-gradient(135deg,var(--mango),var(--mango-deep));color:#3a2400;
+    box-shadow:0 8px 22px rgba(242,169,0,.32);transition:transform .1s,filter .1s,opacity .2s;}
+  .btn:active{transform:translateY(2px);}
+  .btn:disabled{opacity:.4;cursor:default;}
+  .btn.ghost{background:transparent;color:var(--paper);border:2px solid rgba(244,255,249,.4);box-shadow:none;}
+  .btn.hidden{display:none;}
+
+  /* overlays */
+  .overlay{position:fixed;inset:0;z-index:50;background:rgba(6,30,22,.92);backdrop-filter:blur(7px);
+    display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;pointer-events:none;
+    transition:opacity .25s;overflow:auto;}
+  .overlay.show{opacity:1;pointer-events:auto;}
+  .panel{width:100%;max-width:400px;background:linear-gradient(160deg,#0f6e51,#0a3c2c);
+    border:1px solid rgba(47,191,113,.3);border-radius:22px;padding:24px 22px;text-align:center;
+    box-shadow:0 30px 80px rgba(0,0,0,.55);margin:auto;}
+  .panel h1{font-size:23px;margin-bottom:4px;}
+  .panel .sub{opacity:.72;font-size:13px;margin-bottom:16px;}
+  .field{width:100%;margin-bottom:13px;text-align:left;}
+  .field label{display:block;font-size:11px;opacity:.7;margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;}
+  .field input,.field select{width:100%;padding:13px 14px;border-radius:12px;border:1px solid rgba(244,255,249,.25);
+    background:rgba(0,0,0,.28);color:var(--paper);font-size:16px;font-family:inherit;}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--mango);}
+  .field select option{color:#06241a;background:#f4fff9;}
+  .err{color:var(--bad);font-size:12px;min-height:15px;margin-bottom:6px;}
+  .muted{opacity:.6;font-size:11.5px;margin-top:12px;line-height:1.5;}
+
+  /* swag preview / verdict */
+  .swag{display:flex;gap:8px;justify-content:center;margin:6px 0 14px;}
+  .swag .s{flex:1;background:rgba(0,0,0,.22);border-radius:12px;padding:10px 6px;font-size:12px;}
+  .swag .s .e{font-size:24px;display:block;}
+  .swag .s small{display:block;opacity:.6;font-size:10px;margin-top:2px;}
+  .bigscore{font-size:52px;font-weight:900;color:var(--mango);margin:4px 0 0;}
+  .reslabel{opacity:.8;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+  .prize{background:linear-gradient(135deg,rgba(255,210,74,.18),rgba(242,169,0,.12));
+    border:1px solid rgba(255,210,74,.4);border-radius:16px;padding:14px;margin:6px 0 14px;}
+  .prize .won{font-size:18px;font-weight:bold;}
+  .prize .code{font-size:22px;font-weight:900;letter-spacing:2px;color:var(--gold);margin-top:6px;
+    font-family:"Courier New",monospace;}
+  .prize .codenote{font-size:11px;opacity:.7;margin-top:4px;}
+
+  .review{text-align:left;margin:10px 0;max-height:30vh;overflow:auto;}
+  .review .r{background:rgba(0,0,0,.18);border-radius:10px;padding:9px 11px;margin-bottom:7px;font-size:12.5px;}
+  .review .r .q{font-weight:bold;margin-bottom:3px;}
+  .review .r .a{color:var(--good);} .review .r.x .a{color:var(--good);}
+  .review .r .ex{opacity:.7;margin-top:3px;}
+
+  /* leaderboard */
+  .lb{text-align:left;margin-top:6px;}
+  .lb h2{font-size:13px;letter-spacing:2px;text-transform:uppercase;opacity:.7;margin-bottom:10px;text-align:center;}
+  .lb ol{list-style:none;display:flex;flex-direction:column;gap:6px;max-height:30vh;overflow:auto;}
+  .lb li{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.05);font-size:14px;}
+  .lb li .rank{width:22px;text-align:center;font-weight:bold;opacity:.6;}
+  .lb li .fl{font-size:18px;}
+  .lb li .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lb li .pts{font-weight:bold;color:var(--mango);}
+  .lb li.me{background:rgba(47,191,113,.18);border:1px solid rgba(47,191,113,.4);}
+  .lb li.top1 .rank{color:var(--gold);opacity:1;}
+</style>
+</head>
+<body class="prereg">
+<div id="app">
+  <div class="topbar">
+    <div class="brand"><span class="logo">🥭</span>
+      <span id="brandName">Rajshahi Quiz<small>WORDCAMP RAJSHAHI</small></span></div>
+    <div class="scorechip" id="scorechip" style="display:none">SCORE<b id="scoreNow">0</b></div>
+  </div>
+
+  <div class="meta" id="meta" style="display:none">
+    <div class="dots" id="dots"></div>
+    <div class="timer" id="timer"><div class="fill" id="timerFill"></div></div>
+  </div>
+
+  <div class="stage" id="stage" style="display:none">
+    <div class="card">
+      <span class="qcat" id="qcat">RAJSHAHI</span>
+      <img class="qimg" id="qimg" alt="">
+      <div class="qtext" id="qtext">Loading…</div>
+      <div class="opts" id="opts"></div>
+      <div class="explain" id="explain"></div>
+    </div>
+  </div>
+
+  <div class="hud" id="hud" style="display:none">
+    <div class="hint" id="hint">Tap an answer</div>
+    <button class="btn hidden" id="nextBtn">Next →</button>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div class="overlay show" id="startOverlay">
+  <div class="panel">
+    <h1 id="welcomeTitle">🥭 Rajshahi Quiz</h1>
+    <div class="sub" id="welcomeSub">10 questions about the Silk City. Score big, win swag!</div>
+    <div class="swag" id="swagPreview"></div>
+    <div class="err" id="startErr"></div>
+    <div class="field"><label>Your name</label>
+      <input id="nameInput" maxlength="20" placeholder="e.g. Shifat" autocomplete="off"></div>
+    <div class="field"><label>Email</label>
+      <input id="emailInput" type="email" maxlength="60" placeholder="you@example.com" autocomplete="off"></div>
+    <div class="field"><label>Country</label><select id="countrySelect"></select></div>
+    <button class="btn" id="startBtn">Start quiz →</button>
+    <div class="muted" id="winNote">Answer correctly and beat the keeper… er, the questions!</div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="overlay" id="endOverlay">
+  <div class="panel">
+    <h1 id="endTitle">Quiz complete!</h1>
+    <div class="bigscore" id="endScore">0/10</div>
+    <div class="reslabel">correct answers</div>
+    <div id="prizeWrap"></div>
+    <div class="review" id="review"></div>
+    <div class="lb"><h2>🏆 Leaderboard</h2><ol id="lbList"><li><span class="nm">Loading…</span></li></ol></div>
+    <button class="btn" id="newPlayerBtn" style="margin-top:14px">Next player →</button>
+    <div class="muted">One game per player · show this screen to booth staff to claim your swag 🎁</div>
+  </div>
+</div>
+
+<script>
+/* compact country list (flag, name); default Bangladesh */
+const COUNTRIES=[
+  ["🇧🇩","Bangladesh"],["🇮🇳","India"],["🇵🇰","Pakistan"],["🇳🇵","Nepal"],["🇱🇰","Sri Lanka"],
+  ["🇧🇹","Bhutan"],["🇲🇲","Myanmar"],["🇲🇾","Malaysia"],["🇸🇬","Singapore"],["🇮🇩","Indonesia"],
+  ["🇦🇪","UAE"],["🇸🇦","Saudi Arabia"],["🇶🇦","Qatar"],["🇬🇧","United Kingdom"],["🇺🇸","United States"],
+  ["🇨🇦","Canada"],["🇦🇺","Australia"],["🇩🇪","Germany"],["🇫🇷","France"],["🇯🇵","Japan"],
+  ["🇰🇷","South Korea"],["🇨🇳","China"],["🇧🇷","Brazil"],["🇳🇬","Nigeria"],["🇪🇬","Egypt"],
+  ["🌍","Other"],
+];
+
+let cfg={perQuestionSeconds:20,showRunningScore:true,minToWin:5,tiers:[]};
+let player={name:'',email:'',country:'',flag:''};
+let quiz={sessionId:'',questions:[],idx:0,score:0,answered:false,results:[]};
+let timerInt=null;
+
+const $=id=>document.getElementById(id);
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ---------- boot ---------- */
+const sel=$('countrySelect');
+COUNTRIES.forEach((c,i)=>{const o=document.createElement('option');o.value=i;o.textContent=c[0]+'  '+c[1];sel.appendChild(o);});
+sel.value='0';
+
+async function loadConfig(){
+  try{const r=await fetch('/api/config');cfg=await r.json();}catch(e){}
+  $('brandName').innerHTML=esc(cfg.quizName||'Rajshahi Quiz')+'<small>WORDCAMP RAJSHAHI</small>';
+  $('welcomeTitle').textContent='🥭 '+(cfg.quizName||'Rajshahi Quiz');
+  $('welcomeSub').textContent=(cfg.tagline?cfg.tagline+' · ':'')+'Score '+(cfg.minToWin||5)+'+ to win swag!';
+  renderSwagPreview();
+}
+function renderSwagPreview(){
+  const wrap=$('swagPreview');const tiers=(cfg.tiers||[]).slice().sort((a,b)=>a.min-b.min);
+  wrap.innerHTML=tiers.map(t=>{
+    const rem=cfg.remaining&&cfg.remaining[t.item];
+    const remTxt=(rem==null)?'':(rem>0?rem+' left':'out');
+    return '<div class="s"><span class="e">'+(t.emoji||'🎁')+'</span>'+esc(t.item)+
+      '<small>'+t.min+'+ pts'+(remTxt?' · '+remTxt:'')+'</small></div>';
+  }).join('');
+}
+
+/* ---------- register ---------- */
+function validEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);}
+async function alreadyPlayed(email){
+  try{const r=await fetch('/api/check?email='+encodeURIComponent(email));return (await r.json()).played;}catch(e){return false;}
+}
+$('startBtn').addEventListener('click',async ()=>{
+  const n=$('nameInput').value.trim(), em=$('emailInput').value.trim(), err=$('startErr');
+  if(!n){err.textContent='Please enter your name.';return;}
+  if(!validEmail(em)){err.textContent='Please enter a valid email.';return;}
+  err.textContent='';
+  const btn=$('startBtn');btn.disabled=true;btn.textContent='Starting…';
+  const c=COUNTRIES[parseInt(sel.value,10)];
+  player={name:n,email:em,country:c[1],flag:c[0]};
+  try{
+    const r=await fetch('/api/quiz/start',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(player)});
+    if(r.status===409){btn.disabled=false;btn.textContent='Start quiz →';return showAlreadyPlayed();}
+    const data=await r.json();
+    if(!data.sessionId){err.textContent=data.error||'Could not start.';btn.disabled=false;btn.textContent='Start quiz →';return;}
+    cfg.perQuestionSeconds=data.perQuestionSeconds;cfg.showRunningScore=data.showRunningScore;
+    quiz={sessionId:data.sessionId,questions:data.questions,idx:0,score:0,answered:false,results:[]};
+    btn.disabled=false;btn.textContent='Start quiz →';
+    beginQuiz();
+  }catch(e){err.textContent='Network error. Try again.';btn.disabled=false;btn.textContent='Start quiz →';}
+});
+
+/* ---------- quiz ---------- */
+function beginQuiz(){
+  document.body.classList.remove('prereg');
+  $('startOverlay').classList.remove('show');
+  $('meta').style.display='';$('stage').style.display='';$('hud').style.display='';
+  if(cfg.showRunningScore)$('scorechip').style.display='';
+  buildDots();renderQuestion();
+}
+function buildDots(){
+  $('dots').innerHTML=quiz.questions.map((_,i)=>'<div class="dot" id="dot'+i+'"></div>').join('');
+}
+function renderQuestion(){
+  quiz.answered=false;document.body.classList.remove('answered');
+  const q=quiz.questions[quiz.idx];
+  $('qcat').textContent=q.category||'RAJSHAHI';
+  const img=$('qimg');
+  if(q.image){img.src=q.image;img.style.display='block';img.onerror=()=>{img.style.display='none';};}
+  else{img.style.display='none';}
+  $('qtext').textContent=q.question;
+  $('explain').className='explain';$('explain').innerHTML='';
+  const keys=['A','B','C','D','E','F'];
+  $('opts').innerHTML=q.options.map((o,i)=>
+    '<button class="opt" data-i="'+i+'"><span class="key">'+keys[i]+'</span><span>'+esc(o)+'</span></button>').join('');
+  $('opts').querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>answer(parseInt(b.dataset.i,10))));
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('cur',i===quiz.idx));
+  $('nextBtn').className='btn hidden';
+  $('hint').textContent='Question '+(quiz.idx+1)+' of '+quiz.questions.length;
+  startTimer();
+}
+function startTimer(){
+  const total=cfg.perQuestionSeconds||20;let left=total;
+  const fill=$('timerFill'),bar=$('timer');
+  fill.style.width='100%';bar.classList.remove('low');
+  clearInterval(timerInt);
+  const step=()=>{
+    left-=0.1;
+    const pct=Math.max(0,left/total*100);fill.style.width=pct+'%';
+    if(left<=total*0.3)bar.classList.add('low');
+    if(left<=0){clearInterval(timerInt);answer(-1);}
+  };
+  timerInt=setInterval(step,100);
+}
+async function answer(choiceIndex){
+  if(quiz.answered)return;
+  quiz.answered=true;document.body.classList.add('answered');
+  clearInterval(timerInt);
+  const q=quiz.questions[quiz.idx];
+  let data={};
+  try{
+    const r=await fetch('/api/quiz/answer',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sessionId:quiz.sessionId,id:q.id,choiceIndex})});
+    data=await r.json();
+  }catch(e){data={correct:false,correctIndex:-1,explanation:''};}
+  const opts=$('opts').querySelectorAll('.opt');
+  opts.forEach((b,i)=>{
+    if(i===data.correctIndex)b.classList.add('correct');
+    else if(i===choiceIndex)b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+  const dot=$('dot'+quiz.idx);
+  if(data.correct){dot.classList.add('right');quiz.score++;}else{dot.classList.add('wrong');}
+  if(cfg.showRunningScore)$('scoreNow').textContent=quiz.score;
+  if(data.explanation){const ex=$('explain');ex.innerHTML='<b>Did you know?</b> '+esc(data.explanation);ex.classList.add('show');}
+  $('hint').textContent = choiceIndex<0 ? "Time's up!" : (data.correct?'Correct! 🎉':'Not quite');
+  const nb=$('nextBtn');nb.className='btn';
+  nb.textContent = (quiz.idx>=quiz.questions.length-1) ? 'See results →' : 'Next →';
+}
+$('nextBtn').addEventListener('click',()=>{
+  if(quiz.idx>=quiz.questions.length-1)finishQuiz();
+  else{quiz.idx++;renderQuestion();}
+});
+
+/* ---------- finish ---------- */
+async function finishQuiz(){
+  $('meta').style.display='none';$('stage').style.display='none';$('hud').style.display='none';
+  $('endTitle').textContent='Tallying…';$('endScore').textContent='…';
+  $('prizeWrap').innerHTML='';$('review').innerHTML='';
+  $('lbList').innerHTML='<li><span class="nm">Saving…</span></li>';
+  $('endOverlay').classList.add('show');
+  let data={};
+  try{
+    const r=await fetch('/api/quiz/submit',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sessionId:quiz.sessionId})});
+    if(r.status===409){return showAlreadyPlayed();}
+    data=await r.json();
+  }catch(e){data={score:quiz.score,total:quiz.questions.length,details:[],swag:null,top:[]};}
+  renderResult(data);
+}
+function renderResult(d){
+  const total=d.total||quiz.questions.length;
+  $('endScore').textContent=d.score+'/'+total;
+  let title='Nice try!';
+  if(d.score===total)title='Perfect! 🏆';else if(d.score>=Math.ceil(total*0.8))title='Brilliant! 🔥';
+  else if(d.score>=Math.ceil(total*0.5))title='Well played!';else title='Keep exploring Rajshahi!';
+  $('endTitle').textContent=title;
+  // prize
+  if(d.swag){
+    $('prizeWrap').innerHTML=
+      '<div class="prize"><div class="won">'+d.swag.emoji+' You won a <b>'+esc(d.swag.item)+'</b>!</div>'+
+      '<div class="code">'+esc(d.swag.code)+'</div>'+
+      '<div class="codenote">Show this code to booth staff to claim it</div></div>';
+  }else{
+    const need=cfg.minToWin||5;
+    $('prizeWrap').innerHTML='<div class="prize"><div class="won">So close! Score '+need+
+      '+ to win swag.</div><div class="codenote">Thanks for playing — try the penalty game too!</div></div>';
+  }
+  // review (only the missed ones, to keep it short)
+  const wrong=(d.details||[]).filter(x=>!x.ok);
+  if(wrong.length){
+    $('review').innerHTML='<h2 style="font-size:12px;letter-spacing:2px;opacity:.7;text-transform:uppercase;text-align:center;margin-bottom:8px">Review</h2>'+
+      wrong.map(x=>'<div class="r x"><div class="q">'+esc(x.question)+'</div>'+
+        '<div class="a">✓ '+esc(x.correct)+'</div>'+
+        (x.explanation?'<div class="ex">'+esc(x.explanation)+'</div>':'')+'</div>').join('');
+  }else{$('review').innerHTML='';}
+  renderBoard(d.top);
+}
+
+/* ---------- leaderboard ---------- */
+async function loadBoard(){try{const r=await fetch('/api/leaderboard');return (await r.json()).top;}catch(e){return [];}}
+function renderBoard(rows){
+  const list=$('lbList');rows=rows||[];
+  if(!rows.length){list.innerHTML='<li><span class="nm">Be the first on the board!</span></li>';return;}
+  let mePlaced=false;
+  list.innerHTML=rows.map((r,i)=>{
+    const me=!mePlaced&&r.name===player.name&&r.score===quiz.score;if(me)mePlaced=true;
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+    return '<li class="'+(i===0?'top1 ':'')+(me?'me':'')+'"><span class="rank">'+medal+'</span>'+
+      '<span class="fl">'+(r.flag||'🏳️')+'</span><span class="nm">'+esc(r.name)+'</span>'+
+      '<span class="pts">'+r.score+'/'+(r.total||10)+'</span></li>';
+  }).join('');
+}
+
+/* ---------- already played ---------- */
+async function showAlreadyPlayed(){
+  $('startOverlay').classList.remove('show');document.body.classList.remove('prereg');
+  $('meta').style.display='none';$('stage').style.display='none';$('hud').style.display='none';
+  $('endTitle').textContent='Already played!';
+  $('endScore').textContent='✓';
+  $('prizeWrap').innerHTML='<div class="prize"><div class="won">One game per player</div>'+
+    '<div class="codenote">Here is how everyone is doing</div></div>';
+  $('review').innerHTML='';
+  $('endOverlay').classList.add('show');
+  renderBoard(await loadBoard());
+}
+
+$('newPlayerBtn').addEventListener('click',()=>{
+  $('endOverlay').classList.remove('show');
+  $('startOverlay').classList.add('show');document.body.classList.add('prereg');
+  $('scorechip').style.display='none';$('scoreNow').textContent='0';
+  $('nameInput').value='';$('emailInput').value='';$('startErr').textContent='';
+  loadConfig(); // refresh swag remaining
+});
+
+loadConfig();
+</script>
+</body>
+</html>
