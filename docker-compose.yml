@@ -4,12 +4,12 @@ services:
     container_name: rajshahi-quiz
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8090:8090"
     volumes:
       # Results survive container restarts / rebuilds
       - ./data:/app/data
     environment:
-      - PORT=8080
+      - PORT=8090
       - DATA_DIR=/app/data
       # Enables /api/reset, /api/export and the staff redemption page:
       - ADMIN_TOKEN=change-this-token

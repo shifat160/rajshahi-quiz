@@ -4,9 +4,9 @@ services:
     container_name: rajshahi-quiz
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8090:8090"
     environment:
-      - PORT=8080
+      - PORT=8090
       - DATA_DIR=/app/data
       # Secret for /api/reset, /api/export and the staff page (/staff.html)
       - ADMIN_TOKEN=rajshahi-quiz-2026

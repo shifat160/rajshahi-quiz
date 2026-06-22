@@ -8,10 +8,10 @@ COPY public ./public
 COPY content ./content
 
 ENV DATA_DIR=/app/data
-ENV PORT=8080
+ENV PORT=8090
 RUN mkdir -p /app/data
 
-EXPOSE 8080
+EXPOSE 8090
 
 # Set ADMIN_TOKEN to enable /api/reset, /api/export and the staff page.
 # ENV ADMIN_TOKEN=changeme

@@ -18,8 +18,8 @@ Shared live leaderboard + lead capture, same stack as the penalty-shootout booth
 
 ```bash
 ADMIN_TOKEN=change-this-token node server.js
-# open http://localhost:8080      (the quiz)
-# open http://localhost:8080/staff.html   (staff redemption)
+# open http://localhost:8090      (the quiz)
+# open http://localhost:8090/staff.html   (staff redemption)
 ```
 
 Requires Node 18+. No `npm install` — standard library only.
@@ -28,7 +28,7 @@ Requires Node 18+. No `npm install` — standard library only.
 
 ```bash
 docker compose up -d --build
-# http://YOUR_SERVER_IP:8080
+# http://YOUR_SERVER_IP:8090
 ```
 
 ## Deploy on xCloud (push-to-deploy)
